@@ -28,6 +28,37 @@ class BaseAgent:
         print("Agente finalizado")
         print("Victoria ",win)
 
+
+import random
+import time
+class BaseAgent:
+    def __init__(self, id, name):
+        self.id = id
+        self.name = name
+
+    #Devuelve el nombre del agente
+    def Name(self):
+        return self.name
+    #Devuelve el id del agente
+    def Id(self):
+        return self.id
+    #Metodo que se llama al iniciar el agente. No devuelve nada y sirve para contruir el agente
+    def Start(self):
+        print("Inicio del agente ")
+
+    #Metodo que se llama en cada actualización del agente, y se proporciona le vector de percepciones
+    #Devuelve la acción u el disparo si o no
+    def Update(self, perception):
+        print("Toma de decisiones del agente")
+        print(perception)
+        action = random.randint(0,4)
+        return action, True
+    
+    #Metodo que se llama al finalizar el agente, se pasa el estado de terminacion
+    def End(self, win):
+        print("Agente finalizado")
+        print("Victoria ",win)
+
 import math
 
 class SmartAgent(BaseAgent):
@@ -62,7 +93,6 @@ class SmartAgent(BaseAgent):
             self.state = "EXPLORE"
 
         # Ejecutar lógica del estado actual
-        fire = True
         if self.state == "ATTACK_PLAYER":
             action, fire = self._attack_player(agent_pos, player_pos, can_fire, perception)
         elif self.state == "ATTACK_COMMAND":
@@ -70,7 +100,7 @@ class SmartAgent(BaseAgent):
         elif self.state == "EVADE":
             action, fire = self._evade_shell(perception)
         else:
-            action = self._explore(agent_pos, command_center_pos, perception)
+            action, fire = self._explore(agent_pos, command_center_pos, perception, can_fire)
 
         return action, fire
 
@@ -87,7 +117,7 @@ class SmartAgent(BaseAgent):
     def _command_center_accessible(self, perception):
         return perception[0] == 3 or perception[1] == 3 or perception[2] == 3 or perception[3] == 3
 
-    def _calculate_path(self, start, target, perception):
+    def _calculate_path(self, start, target, perception, can_fire):
         # Implementación simplificada de A* para demostración
         # En una implementación real se usaría el mapa completo
         start = (int(start[0]), int(start[1]))
@@ -107,32 +137,52 @@ class SmartAgent(BaseAgent):
         # Verificar obstáculos en direcciones preferentes
         for direction in preferred_directions:
             if not self._has_obstacle(direction-1, perception):  # -1 porque las direcciones empiezan en 0
-                return direction
+                fire = self._shoot_command(direction - 1, start, target, perception)
+                print(fire)
+                if fire:
+                    return self._rotation_planetar(start, target, dx, dy, direction), True
+                return direction, fire
         
         # Si todas las direcciones están bloqueadas, elegir aleatoria
-        return random.choice([1, 2, 3, 4])
+        return 0, True
+
+    def _rotation_planetar(self, start, target, dx, dy, direction):
+        if (target[0] == start[0]):
+            if dx > 0:
+                return 1
+            else: return 2
+        elif (target[1] == start[1]):
+            if dy > 0:
+                return 3
+            else: return 4
+        return direction
 
     def _has_obstacle(self, direction_index, perception):
         return perception[direction_index] in [1.0, 2.0] and perception[direction_index+4] <= 1.5
 
     def _attack_player(self, agent_pos, player_pos, can_fire, objects):
         # Calcular dirección hacia el jugador
-        move_action = self._calculate_path(agent_pos, player_pos, objects)
+        move_action, fire = self._calculate_path(agent_pos, player_pos, objects, can_fire)
         return move_action, can_fire
+    
+    def _shoot_command(self, direction, agent_pos, command_pos, perception):
+        if (direction > 2 and agent_pos[0] == command_pos[0]) or (direction < 3 and agent_pos[1] == command_pos[1]):
+            return True
+        return False
 
     def _attack_command(self, agent_pos, command_pos, can_fire, objects):
         # Calcular dirección hacia el command center
-        move_action= self._calculate_path(agent_pos, command_pos, objects)
+        move_action, fire= self._calculate_path(agent_pos, command_pos, objects, can_fire)
         return move_action, can_fire
 
     def _evade_shell(self, perception):
         # Movimiento evasivo aleatorio
         return random.choice([1, 2, 3, 4]), False
 
-    def _explore(self, agent_pos, command_pos, objects):
+    def _explore(self, agent_pos, command_pos, objects, can_fire):
         # Navegar hacia el command center
-        move_action = self._calculate_path(agent_pos, command_pos, objects)
-        return move_action
+        move_action, fire = self._calculate_path(agent_pos, command_pos, objects, can_fire)
+        return move_action, fire
 
     def _distance(self, pos1, pos2):
         return math.sqrt((pos1[0]-pos2[0])**2 + (pos1[1]-pos2[1])**2)
