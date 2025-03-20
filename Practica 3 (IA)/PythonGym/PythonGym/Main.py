@@ -1,5 +1,5 @@
 from LGymClient import agentLoop
 from BaseAgent import SmartAgent
 
-agent = SmartAgent("1","puta")
-agentLoop(agent,True)
+agent = SmartAgent("1","Agente Pi")
+agentLoop(agent,True) 

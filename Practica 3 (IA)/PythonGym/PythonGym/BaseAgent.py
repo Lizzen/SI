@@ -56,10 +56,6 @@ class ExploreState(State):
         for direction in preferred_directions:
             fire = False
             if not self._has_obstacle(direction-1, perception):  # -1 porque las direcciones empiezan en 0
-                """fire = self._shoot_command(direction - 1, agent, command_center, perception)
-                print(fire)
-                if fire:
-                    return self._rotation_planetar(agent, command_center, dx, dy, direction),"""
                 self.last_position = direction
                 self.agent = agent
                 return direction, fire
@@ -74,38 +70,6 @@ class ExploreState(State):
                 self.agent = agent
                 return array[i]
         return 0
-    
-#Dispara si está en la misma posicion del agente o command center
-    def _shoot_command(self, direction, agent_pos, command_pos, perception):
-        if (direction > 2 and agent_pos[0] == command_pos[0]) or (direction < 3 and agent_pos[1] == command_pos[1]):
-            return True
-        return False
-    
-#hay obstaculo
-    def _has_obstacle(self, direction_index, perception):
-        return perception[direction_index] in [1.0, 2.0] and perception[direction_index+4] <= 0.5
-    
-# rota para disparar
-    def _rotation_planetar(self, start, target, dx, dy, direction):
-        if (target[0] == start[0]):
-            if dx > 0:
-                return 2
-            else: return 1
-        elif (target[1] == start[1]):
-            if dy > 0:
-                return 4
-            else: return 3
-        return direction
-
-            
-    def Transit(self, perception):
-        if any(perception[i] == 5 and perception[i+4] < 3 for i in range(4)):
-            return "EVADE"
-        if any(perception[i] == 4 for i in range(4)):
-            return "ATTACK_PLAYER"
-        if any(perception[i] == 3 for i in range(4)):
-            return "ATTACK_COMMAND"
-        return self.id
     
 #Dispara si está en la misma posicion del agente o command center
     def _shoot_command(self, direction, agent_pos, command_pos, perception):
@@ -157,20 +121,18 @@ class AttackPlayerState(State):
         super().__init__("ATTACK_PLAYER")
     
     def Update(self, perception):
-        agent = (int(perception[12]), int(perception[13]))
-        player = (int(perception[12]), int(perception[13]))
+         # Implementación simplificada de A* para demostración
+         # En una implementación real se usaría el mapa completo
+        agent_pos = (int(perception[12]), int(perception[13]))
+        player_pos = (int(perception[8]), int(perception[9]))
+        dx = player_pos[0] - agent_pos[0]
+        dy = player_pos[1] - agent_pos[1]
         
-        dx = player[0] - agent[0]
-        dy = player[1] - agent[1]
-        
-        preferred_directions = []
         if abs(dx) > abs(dy):
-            preferred_directions.append(3 if dx > 0 else 4)
-            preferred_directions.append(1 if dy > 0 else 2)
+            action = 3 if dx > 0 else 4
         else:
-            preferred_directions.append(1 if dy > 0 else 2)
-            preferred_directions.append(3 if dx > 0 else 4)
-        return preferred_directions[0], True  # Quieto y disparando
+            action = 1 if dy > 0 else 2
+        return action, True
     
     def Transit(self, perception):
         if not any(perception[i] == 4 for i in range(4)):
@@ -189,11 +151,22 @@ class AttackCommandState(State):
         dx = command_pos[0] - agent_pos[0]
         dy = command_pos[1] - agent_pos[1]
         
+        preferred_directions = []
         if abs(dx) > abs(dy):
-            action = 3 if dx > 0 else 4
+            preferred_directions.append(3 if dx > 0 else 4)
+            preferred_directions.append(1 if dy > 0 else 2)
         else:
-            action = 1 if dy > 0 else 2
-        return action, True
+            preferred_directions.append(1 if dy > 0 else 2)
+            preferred_directions.append(3 if dx > 0 else 4)
+        return self._same_move(preferred_directions, command_pos), True
+    
+    def _same_move(self, array, agent):
+        for i in range(0, 2):
+            if array[i] != self.last_position:
+                self.last_position = array[i]
+                self.agent = agent
+                return array[i]
+        return 0
     
     def Transit(self, perception):
         if not any(perception[i] == 3 for i in range(4)):
