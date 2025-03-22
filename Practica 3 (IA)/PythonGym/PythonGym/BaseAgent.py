@@ -40,8 +40,8 @@ class ExploreState(State):
         self.agent = None
     
     def Update(self, perception):
-        agent = (int(perception[12]), int(perception[13]))
-        command_center = (int(perception[10]), int(perception[11]))
+        agent = perception[12], perception[13]
+        command_center = perception[10], perception[11]
         
         dx = command_center[0] - agent[0]
         dy = command_center[1] - agent[1]
@@ -54,53 +54,46 @@ class ExploreState(State):
             preferred_directions.append(1 if dy > 0 else 2)
             preferred_directions.append(3 if dx > 0 else 4)
 
-        for direction in preferred_directions:
+        if (not self._has_obstacle(preferred_directions[0]-1, perception) and dx != 0 and dy != 0):
+            self.last_position = preferred_directions[0]
+            return preferred_directions[0], False
+        elif (not self._has_obstacle(preferred_directions[1]-1, perception) and dx != 0 and dy != 0):
+            self.last_position = preferred_directions[1]
+            return preferred_directions[1], False
+        elif (perception[preferred_directions[0]-1] == 2.0):
+            self.last_position = preferred_directions[0]
+            return preferred_directions[0], True
+        elif (perception[preferred_directions[1]-1] == 2.0):
+            self.last_position = preferred_directions[1]
+            return preferred_directions[1], True            
+        """for direction in preferred_directions:
             fire = False
             if not self._has_obstacle(direction-1, perception):  # -1 porque las direcciones empiezan en 0
                 self.last_position = direction
                 self.agent = agent
-                return direction, self._shoot_command(direction, agent, command_center)
+                return direction, self._shoot_command(direction-1, perception)"""
         
-        # Si todas las direcciones están bloqueadas, elegir aleatoria
-        return self._same_move(preferred_directions, agent), True
+        # Si todas las direcciones están bloqueadas, elegir una que no haya escogido anteriormente
+        return self._same_move(preferred_directions), True
     
-    def _same_move(self, array, agent):
+    def _same_move(self, array):
         for i in range(0, 2):
             if array[i] != self.last_position:
                 self.last_position = array[i]
-                self.agent = agent
                 return array[i]
         return 0
     
-#Dispara si está en la misma posicion del agente o command center
-    def _shoot_command(self, direction, agent_pos, command_pos):
-        if (direction > 2 and agent_pos[0] == command_pos[0]) or (direction < 3 and agent_pos[1] == command_pos[1]):
-            return True
-        return False
-    
 #hay obstaculo
     def _has_obstacle(self, direction_index, perception):
-        return perception[direction_index] in [1.0, 2.0] and perception[direction_index+4] <= 0.75
-    
-# rota para disparar
-    def _rotation_planetar(self, start, target, dx, dy, direction):
-        if (target[0] == start[0]):
-            if dx > 0:
-                return 2
-            else: return 1
-        elif (target[1] == start[1]):
-            if dy > 0:
-                return 4
-            else: return 3
-        return direction
+        return (perception[direction_index] == 1.0 or perception[direction_index] == 2.0)  and perception[direction_index+4] <= 0.75
 
             
     def Transit(self, perception):
-        if any(perception[i] == 5 and perception[i+4] < 3 for i in range(4)):
+        if any(perception[i] == 5 and perception[i+4] < 6 for i in range(4)):
             return "EVADE"
         if any(perception[i] == 4 for i in range(4)):
             return "ATTACK_PLAYER"
-        if any(perception[i] == 3 for i in range(4)) or int(perception[10]) == int(perception[12]) or int(perception[11]) == int(perception[13]):
+        if any(perception[i] == 3 for i in range(4)) or perception[10] == perception[12] or perception[11] == perception[13]:
             return "ATTACK_COMMAND"
         return self.id
 
@@ -110,7 +103,12 @@ class EvadeState(State):
         super().__init__("EVADE")
     
     def Update(self, perception):
-        return random.choice([1, 2, 3, 4]), False
+        for i in range(4):
+            if perception[i] == 4:
+                return i+1, True
+            
+        # Nunca le da tiempo a hacer este estado a tiempo
+        return random.choice([1, 2, 3, 4]), True
     
     def Transit(self, perception):
         if not any(perception[i] == 5 for i in range(4)):
@@ -122,10 +120,9 @@ class AttackPlayerState(State):
         super().__init__("ATTACK_PLAYER")
     
     def Update(self, perception):
-         # Implementación simplificada de A* para demostración
-         # En una implementación real se usaría el mapa completo
-        agent_pos = (int(perception[12]), int(perception[13]))
-        player_pos = (int(perception[8]), int(perception[9]))
+         # Implementación de A* con Manhattan
+        agent_pos = perception[12], perception[13]
+        player_pos = perception[8], perception[9]
         dx = player_pos[0] - agent_pos[0]
         dy = player_pos[1] - agent_pos[1]
         
@@ -147,27 +144,16 @@ class AttackCommandState(State):
         super().__init__("ATTACK_COMMAND")
     
     def Update(self, perception):
-        agent_pos = (int(perception[12]), int(perception[13]))
-        command_pos = (int(perception[10]), int(perception[11]))
+        agent_pos = perception[12], perception[13]
+        command_pos = perception[10], perception[11]
         dx = command_pos[0] - agent_pos[0]
         dy = command_pos[1] - agent_pos[1]
         
-        preferred_directions = []
         if abs(dx) > abs(dy):
-            preferred_directions.append(3 if dx > 0 else 4)
-            preferred_directions.append(1 if dy > 0 else 2)
+            action = 3 if dx > 0 else 4
         else:
-            preferred_directions.append(1 if dy > 0 else 2)
-            preferred_directions.append(3 if dx > 0 else 4)
-        return preferred_directions[0], True
-    
-    def _same_move(self, array, agent):
-        for i in range(0, 2):
-            if array[i] != self.last_position:
-                self.last_position = array[i]
-                self.agent = agent
-                return array[i]
-        return 0
+            action = 1 if dy > 0 else 2
+        return action, True
     
     def Transit(self, perception):
         if not (any(perception[i] == 3 for i in range(4)) or int(perception[10]) == int(perception[12]) or int(perception[11]) == int(perception[13])):
@@ -198,23 +184,3 @@ class SmartAgent(BaseAgent):
 
     def End(self, win):
         self.state_machine.End()
-
-""""class DestroyObstacleState(State):
-    def __init__(self):
-        super().__init__("DESTROY_OBSTACLE")
-        self.obstacle_direction = None
-    
-    def Update(self, perception):
-        # Disparar solo a obstáculos rompibles (tipo 2)
-        for i in range(4):
-            if perception[i] == 2.0 and perception[i+4] <= 1.5:
-                self.obstacle_direction = i
-                return 0, True  # Quieto y disparando
-        
-        # Si el obstáculo es irrompible (tipo 1), buscar ruta alternativa
-        return random.choice([1, 2, 3, 4]), False
-    
-    def Transit(self, perception):
-        if not any(perception[i] == 2.0 for i in range(4)):
-            return "EXPLORE"
-        return self.id"""
