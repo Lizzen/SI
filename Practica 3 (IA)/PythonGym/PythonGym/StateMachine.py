@@ -1,3 +1,4 @@
+# David Ferreras Díaz y Pablo Padial Iniesta
 from State import State
 
 class StateMachine(State):

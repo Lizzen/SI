@@ -1,3 +1,4 @@
+# David Ferreras Díaz y Pablo Padial Iniesta
 class State:
     def __init__(self, state_id):
         self.id = state_id

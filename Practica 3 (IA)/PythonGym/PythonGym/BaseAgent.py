@@ -1,4 +1,4 @@
-
+# David Ferreras Díaz y Pablo Padial Iniesta
 import random
 from State import State
 from StateMachine import StateMachine
