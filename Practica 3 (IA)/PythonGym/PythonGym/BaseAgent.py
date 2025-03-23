@@ -32,21 +32,23 @@ class BaseAgent:
         print("Victoria ",win)
 
 
-
+# In perception = 0.20 the IA works well but the best results are in the value 0.18
 class ExploreState(State):
     def __init__(self):
         super().__init__("EXPLORE")
-        self.last_position = None
-        self.agent = None
+        self.last_position = None       # Save the agent's last direction choice
+        self.agent = None               # Save the last position of the agent
     
+    # greedy algorithm
     def Update(self, perception):
-        agent = perception[12], perception[13]
-        command_center = perception[10], perception[11]
+        # Deploying A* with Manhattan using an Array that has the best choices
+        agent = perception[12], perception[13]              # POS_X, POS_Y
+        command_center = perception[10], perception[11]     # POS_X, POS_Y
         
-        dx = command_center[0] - agent[0]
-        dy = command_center[1] - agent[1]
+        dx = command_center[0] - agent[0]       # Distance_X
+        dy = command_center[1] - agent[1]       # Distance_Y
         
-        preferred_directions = []
+        preferred_directions = []       # Array which contains the best choices
         if abs(dx) > abs(dy):
             preferred_directions.append(3 if dx > 0 else 4)
             preferred_directions.append(1 if dy > 0 else 2)
@@ -54,26 +56,22 @@ class ExploreState(State):
             preferred_directions.append(1 if dy > 0 else 2)
             preferred_directions.append(3 if dx > 0 else 4)
 
+        # if there are no obstacles 
         if (not self._has_obstacle(preferred_directions[0]-1, perception) and dx != 0 and dy != 0):
             self.last_position = preferred_directions[0]
             return preferred_directions[0], False
         elif (not self._has_obstacle(preferred_directions[1]-1, perception) and dx != 0 and dy != 0):
             self.last_position = preferred_directions[1]
             return preferred_directions[1], False
+        # if there ara breakable walls
         elif (perception[preferred_directions[0]-1] == 2.0):
             self.last_position = preferred_directions[0]
             return preferred_directions[0], True
         elif (perception[preferred_directions[1]-1] == 2.0):
             self.last_position = preferred_directions[1]
             return preferred_directions[1], True            
-        """for direction in preferred_directions:
-            fire = False
-            if not self._has_obstacle(direction-1, perception):  # -1 porque las direcciones empiezan en 0
-                self.last_position = direction
-                self.agent = agent
-                return direction, self._shoot_command(direction-1, perception)"""
         
-        # Si todas las direcciones están bloqueadas, elegir una que no haya escogido anteriormente
+        # If all directions are blocked, choose one that you have not previously chosen
         return self._same_move(preferred_directions), True
     
     def _same_move(self, array):
@@ -83,7 +81,6 @@ class ExploreState(State):
                 return array[i]
         return 0
     
-#hay obstaculo
     def _has_obstacle(self, direction_index, perception):
         return (perception[direction_index] == 1.0 or perception[direction_index] == 2.0)  and perception[direction_index+4] <= 0.75
 
@@ -91,28 +88,33 @@ class ExploreState(State):
     def Transit(self, perception):
         if any(perception[i] == 5 and perception[i+4] < 6 for i in range(4)):
             return "EVADE"
-        if any(perception[i] == 4 for i in range(4)):
-            return "ATTACK_PLAYER"
-        if any(perception[i] == 3 for i in range(4)) or perception[10] == perception[12] or perception[11] == perception[13]:
+        if any(perception[i] == 3 for i in range(4)) or abs(perception[10] - perception[12]) <= 0.5 or abs(perception[11] - perception[13]) <= 0.5:
             return "ATTACK_COMMAND"
+        if any(perception[i] == 4 for i in range(4)) or abs(perception[8] - perception[12]) <= 0.15 or abs(perception[9] - perception[13]) <= 0.15:
+            return "ATTACK_PLAYER"
         return self.id
 
 
 class EvadeState(State):
     def __init__(self):
         super().__init__("EVADE")
+        self.DIRECTIONS = [1, 2, 3, 4]  # Array with the directions
     
     def Update(self, perception):
-        for i in range(4):
-            if perception[i] == 4:
-                return i+1, True
+
+        for direction in self.DIRECTIONS:
+            if perception[direction-1] == 4: 
+                return direction, True 
             
-        # Nunca le da tiempo a hacer este estado a tiempo
-        return random.choice([1, 2, 3, 4]), True
+        return random.choice(self.DIRECTIONS), True
     
     def Transit(self, perception):
         if not any(perception[i] == 5 for i in range(4)):
             return "EXPLORE"
+        if any(perception[i] == 4 for i in range(4)) or abs(perception[8] - perception[12]) <= 0.15 or abs(perception[9] - perception[13]) <= 0.15:
+            return "ATTACK_PLAYER"
+        if any(perception[i] == 3 for i in range(4)) or abs(perception[10] - perception[12]) <= 0.5 or abs(perception[11] - perception[13]) <= 0.5:
+            return "ATTACK_COMMAND"
         return self.id
 
 class AttackPlayerState(State):
@@ -120,7 +122,7 @@ class AttackPlayerState(State):
         super().__init__("ATTACK_PLAYER")
     
     def Update(self, perception):
-         # Implementación de A* con Manhattan
+        # Deploying A* with Manhattan
         agent_pos = perception[12], perception[13]
         player_pos = perception[8], perception[9]
         dx = player_pos[0] - agent_pos[0]
@@ -130,13 +132,16 @@ class AttackPlayerState(State):
             action = 3 if dx > 0 else 4
         else:
             action = 1 if dy > 0 else 2
+
         return action, True
     
     def Transit(self, perception):
-        if not any(perception[i] == 4 for i in range(4)):
+        if any(perception[i] == 5 and perception[i+4] < 6 for i in range(4)):
+            return "EVADE"        
+        if not (any(perception[i] == 4 for i in range(4)) or abs(perception[8] - perception[12]) <= 0.15 or abs(perception[9] - perception[13]) <= 0.15):
             return "EXPLORE"
-        if any(perception[i] == 5 and perception[i+4] < 3 for i in range(4)):
-            return "EVADE"
+        if any(perception[i] == 3 for i in range(4)) or abs(perception[10] - perception[12]) <= 0.5 or abs(perception[11] - perception[13]) <= 0.5:
+            return "ATTACK_COMMAND"
         return self.id
 
 class AttackCommandState(State):
@@ -144,6 +149,7 @@ class AttackCommandState(State):
         super().__init__("ATTACK_COMMAND")
     
     def Update(self, perception):
+        # Deploying A* with Manhattan
         agent_pos = perception[12], perception[13]
         command_pos = perception[10], perception[11]
         dx = command_pos[0] - agent_pos[0]
@@ -156,10 +162,13 @@ class AttackCommandState(State):
         return action, True
     
     def Transit(self, perception):
-        if not (any(perception[i] == 3 for i in range(4)) or int(perception[10]) == int(perception[12]) or int(perception[11]) == int(perception[13])):
-            return "EXPLORE"
-        if any(perception[i] == 5 and perception[i+4] < 3 for i in range(4)):
+        if any(perception[i] == 5 and perception[i+4] < 6 for i in range(4)):
             return "EVADE"
+        if not (any(perception[i] == 3 for i in range(4)) or abs(perception[10] - perception[12]) <= 1 or abs(perception[11] - perception[13]) <= 1):
+            return "EXPLORE"
+        if any(perception[i] == 4 for i in range(4)) and abs(perception[8] - perception[12]) <= 0.2 and abs(perception[9] - perception[13]) <= 0.2:
+            return "ATTACK_PLAYER"
+
         return self.id
 
 class SmartAgent(BaseAgent):
@@ -170,16 +179,15 @@ class SmartAgent(BaseAgent):
             "EVADE": EvadeState(),
             "ATTACK_PLAYER": AttackPlayerState(),
             "ATTACK_COMMAND": AttackCommandState(),
-            #"DESTROY_OBSTACLE": DestroyObstacleState()
         }, initial="EXPLORE")
 
     def Start(self):
         self.state_machine.Start()
 
     def Update(self, perception):
-        # Convertir valores críticos a enteros
-        perception = [int(x) if i in [8,9,10,11,12,13,14,15] else x 
-                     for i, x in enumerate(perception)]
+        # Convert critical values to integers (Así va mejor el código pero no lo hemos implementado ya que nos parecio un poco trampa)
+        """perception = [int(x) if i in [8,9,10,11,12,13,14,15] else x 
+                     for i, x in enumerate(perception)]"""
         return self.state_machine.Update(perception)
 
     def End(self, win):

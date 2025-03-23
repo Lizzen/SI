@@ -1,18 +1,20 @@
 class State:
     def __init__(self, state_id):
-        self.id = state_id  # Usamos snake_case para seguir convenciones Python
+        self.id = state_id
     
+    #Metodo que se llama al iniciar el estado
     def Start(self):
-        print(f"Inicio del estado: {self.id}")  # Corregido f-string
+        print(f"Inicio del estado: {self.id}")  
     
+    #Metodo que se llama en cada actualización del estado
+    #devuelve las acciones (actuadores) que el agente realiza
     def Update(self, perception):
-        # Devuelve una tupla con (acción, disparo)
-        # Acción 0 = ninguna, disparo = False por defecto
-        return 0, False  # Valor más seguro por defecto
+        return 0, False
     
+     #método que se llama para decidir la transición del estado. Devuelve el id del estado nuevo
     def Transit(self, perception):
-        # Por defecto mantiene el mismo estado
         return self.id
     
+    #Metodo que se llama al finalizar el estado
     def End(self):
-        print(f"Fin del estado: {self.id}")  # Corregido f-string
+        print(f"Fin del estado: {self.id}") 
