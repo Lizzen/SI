@@ -26,6 +26,23 @@ class AStar:
         goal = self.problem.GetGoal()
         start.SetG(0)
         start.SetH(self.problem.Heuristic(start))
+        start.SetParent(None)
+        while self.open is not empty:
+            current = 
+
+            if current == goal:
+                return self.ReconstructPath(current)
+            
+            self.open.remove(current)
+            self.precessed.add(current)
+
+            for neighbor in current:
+                if neighbor in self.precessed:
+                    continue
+
+                tentative_g = current.GetG() + 
+
+
     
         #mientras no encontremos la meta y haya elementos en open....
         #TODO implementar el bucle de búsqueda del algoritmo A*
@@ -54,6 +71,9 @@ class AStar:
     def ReconstructPath(self, goal):
         path = []
         #TODO: devuelve el path invertido desde la meta hasta que el padre sea None.
+        while goal is not None:
+            path.append(goal)
+            goal = goal.GetParent
         return path
 
 
