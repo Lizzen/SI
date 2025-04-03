@@ -27,8 +27,10 @@ class AStar:
         start.SetG(0)
         start.SetH(self.problem.Heuristic(start))
         start.SetParent(None)
-        while self.open is not empty:
-            current = 
+        path.append(start)
+        while self.open:
+            self.open.sort(key=lambda nodo: nodo.F())
+            current = self.open[0]
 
             if current == goal:
                 return self.ReconstructPath(current)
@@ -36,14 +38,21 @@ class AStar:
             self.open.remove(current)
             self.precessed.add(current)
 
-            for neighbor in current:
+            for neighbor in self.problem.GetSucessors(current):
                 if neighbor in self.precessed:
                     continue
 
-                tentative_g = current.GetG() + 
+                tentative_g = current.G() + 100
+                if neighbor not in self.open:
+                    self.open.append(neighbor)
+                elif tentative_g >= neighbor.G():
+                    continue
 
+                neighbor.SetParent(current)
+                neighbor.SetG(tentative_g)
+                neighbor.SetH(self.problem.Heuristic(self.problem.GetGoal()))
+                path.append(neighbor)
 
-    
         #mientras no encontremos la meta y haya elementos en open....
         #TODO implementar el bucle de búsqueda del algoritmo A*
         return path
@@ -62,7 +71,7 @@ class AStar:
         while found == None and i < len(self.open):
             node = self.open[i]
             i += 1
-            if node.IsEqual(sucesor):
+            if node == sucesor:
                 found = node
         return found
 

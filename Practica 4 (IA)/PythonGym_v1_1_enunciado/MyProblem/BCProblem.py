@@ -35,7 +35,7 @@ class BCProblem(Problem):
     def Heuristic(self, node):
         #TODO: heurística del nodo
         print("Aqui falta ncosas por hacer :) ")
-        return np.sqrt((node.xSize - self.xSize)**2 + (node.ySize - self.ySize)**2)
+        return np.sqrt((node.x - self.xSize)**2 + (node.y - self.ySize)**2)
 
     #Genera la lista de sucesores del nodo (Se necesita reimplementar)
     def GetSucessors(self, node):
@@ -43,14 +43,16 @@ class BCProblem(Problem):
         #TODO: sucesores de un nodo dado
         print("Aqui falta ncosas por hacer :) ")
         possible_moves = [
-            (node.xSize+1, node.ySize), (node.xSize-1, node.ySize),    # Right, Left
-            (node.xSize, node.ySize+1), (node.xSize, node.ySize-1),    # Up, Down
-            (node.xSize+1, node.ySize+1), (node.xSize-1, node.ySize-1),  # Diagonal moves
-            (node.xSize+1, node.ySize-1), (node.xSize-1, node.ySize+1)
+            (node.x+1, node.y), (node.x-1, node.y),    # Right, Left
+            (node.x, node.y+1), (node.x, node.y-1),    # Up, Down
+            (node.x+1, node.y+1), (node.x-1, node.y-1),  # Diagonal moves
+            (node.x+1, node.y-1), (node.x-1, node.y+1)
         ]
 
         for nx, ny in possible_moves:
-            
+            if self.xSize > nx >= 0 and self.ySize > ny >= 0 and self.map[nx, ny] == 0:
+                self.CreateNode(successors, node, nx, ny)
+
         return successors
     
     #métodos estáticos

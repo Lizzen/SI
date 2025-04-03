@@ -7,14 +7,21 @@ class Node:
         self.g = g
         self.h = 0.0
 
-    #obtiene el padre
     def GetParent(self):
         return self.parent
     
     #comprueba que dos nodos son iguales (se necesita reimplementar)
-    def IsEqual(self,node):
-        raise NotImplementedError("IsEqual debe ser reimplementado en la clase hija")
+    def __repr__(self):
+        pass
+    
+    #comprueba que dos nodos son iguales (se necesita reimplementar)
+    def __eq__(self, other):
+        raise NotImplementedError("__eq__ debe ser reimplementado en la clase hija")
         return False
+    
+
+    def __hash__(self):
+        pass
     
     #Establece el nodo padre para poder reconstruir el path solución
     def SetParent(self, p):
@@ -39,3 +46,6 @@ class Node:
     #Devolvemos el valor de la función euristica calculada H
     def H(self):
         return self.h
+    
+    def toString(self):
+        return str(self.__repr__())
