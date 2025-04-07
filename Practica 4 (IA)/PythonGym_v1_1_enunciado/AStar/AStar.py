@@ -42,7 +42,7 @@ class AStar:
                 if neighbor in self.precessed:
                     continue
 
-                tentative_g = current.G() + 100
+                tentative_g = current.G() + self.Manhattan(current, neighbor)
                 if neighbor not in self.open:
                     self.open.append(neighbor)
                 elif tentative_g >= neighbor.G():
@@ -56,6 +56,9 @@ class AStar:
         #mientras no encontremos la meta y haya elementos en open....
         #TODO implementar el bucle de búsqueda del algoritmo A*
         return path
+    
+    def Manhattan(self, current , other):
+        return abs(other.x - current.x) + abs(other.y - current.y)
 
     #nos permite configurar un nodo (node) con el padre y la nueva G
     def _ConfigureNode(self, node, parent, newG):
@@ -82,7 +85,8 @@ class AStar:
         #TODO: devuelve el path invertido desde la meta hasta que el padre sea None.
         while goal is not None:
             path.append(goal)
-            goal = goal.GetParent
+            goal = goal.GetParent()
+            print(goal)
         return path
 
 
