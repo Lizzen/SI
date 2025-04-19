@@ -65,7 +65,7 @@ class GoalOrientedAgent(BaseAgent):
             #TODO creamos un plan, pasos:
             #-con gualMonito, seleccionamos la meta actual (Que será la mas propicia => definir la estrategia a seguir).
             goal = self.goalMonitor.SelectGoal(perception, map, self)
-            print("-------------------------- GOAL: ",goal.value, "--------------------------")
+            print(f"-----------------", goal.value,"-----------------")
             #-le damos el nodo inicial _CreateInitialNode
             self.problem.SetInitial(self._CreateInitialNode(perception))
             #-establecer la meta actual al problema para que A* sepa cual es.

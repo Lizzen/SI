@@ -23,8 +23,8 @@ class GoalMonitor:
 
         Criterios:
         1.  self.recalculate  →  ha sido forzado externamente.
-        2.  Ha pasado un intervalo fijo (3 s) desde el último plan.
-        3.  La salud del agente es 1 o menos.
+        2.  Ha pasado un intervalo fijo (3 s) desde el último plan.
+        3.  La salud del agente es 1 o menos.
         """
         # 1) Re‑planificación forzada desde fuera
         if self.recalculate:
@@ -36,7 +36,7 @@ class GoalMonitor:
         currentTime = perception[AgentConsts.TIME]
         if self.lastTime < 0:
             self.lastTime = currentTime           # primera llamada
-        elif currentTime - self.lastTime > 1:   # intervalo cumplido
+        elif currentTime - self.lastTime > 3.0:   # intervalo cumplido
             self.lastTime = currentTime
             return True
 
@@ -63,7 +63,6 @@ class GoalMonitor:
         goalLife    = self.goals[GoalMonitor.GOAL_LIFE]              # 1
         goalPlayer  = self.goals[GoalMonitor.GOAL_PLAYER]            # 2
 
-
         # ---------------------------------------------------
         # 1) Jugador a la vista y “cerca”
         # ---------------------------------------------------
@@ -76,30 +75,15 @@ class GoalMonitor:
                         agent.problem.ySize)
 
             distPlayer = abs(goalPlayer.x - xA) + abs(goalPlayer.y - yA)
-            distCommand = abs(goalCommand.x - xA) + abs(goalCommand.y - yA)
-            if distCommand > 7:
-                # Si te alejas persiguiendo al player, recalcula para ir a por la command center
-                return goalCommand
-            if distPlayer <= 3:
+
+            if distPlayer <= 4:
                 return goalPlayer
 
         # ---------------------------------------------------
         # 2) Necesito vida urgentemente
         # ---------------------------------------------------
-
-        if perception[AgentConsts.HEALTH] == 1 and goalLife is not None and perception[AgentConsts.LIFE_X] != -1:
-            # Estamos yendo a por la vida, pero ¿estamos cerca de la base?
-            xA, yA = BCProblem.WorldToMapCoord(
-                perception[AgentConsts.AGENT_X],
-                perception[AgentConsts.AGENT_Y],
-                agent.problem.ySize)
-
-            distToCommand = abs(goalCommand.x - xA) + abs(goalCommand.y - yA)
-
-            if distToCommand <= 3:
-                return goalCommand     # Estamos justo al lado de la base → la atacamos
+        if perception[AgentConsts.HEALTH] <= 1 and goalLife is not None:
             return goalLife
-
 
         # ---------------------------------------------------
         # 3) Por defecto, seguimos atacando el Command Center
