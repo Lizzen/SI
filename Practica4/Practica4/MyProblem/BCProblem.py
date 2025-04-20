@@ -37,8 +37,9 @@ class BCProblem(Problem):
         # print("Aqui falta ncosas por hacer :) ")
         # return np.sqrt((node.x - self.xSize)**2 + (node.y - self.ySize)**2)
         # BCProblem.py   :contentReference[oaicite:2]{index=2}&#8203;:contentReference[oaicite:3]{index=3}
-        dx = abs(node.x - self.goal.x)
-        dy = abs(node.y - self.goal.y)
+        xNode, yNode = BCProblem.WorldToMapCoord(node.x, node.y, 15)
+        dx = abs(xNode - self.goal.x)
+        dy = abs(yNode - self.goal.y)
         return dx + dy      # Manhattan
 
      # muro -> intransitable

@@ -36,7 +36,7 @@ class GoalMonitor:
         currentTime = perception[AgentConsts.TIME]
         if self.lastTime < 0:
             self.lastTime = currentTime           # primera llamada
-        elif currentTime - self.lastTime > 3.0:   # intervalo cumplido
+        elif currentTime - self.lastTime > 1.0:   # intervalo cumplido
             self.lastTime = currentTime
             return True
 
@@ -76,13 +76,13 @@ class GoalMonitor:
 
             distPlayer = abs(goalPlayer.x - xA) + abs(goalPlayer.y - yA)
 
-            if distPlayer <= 4:
+            if distPlayer <= 3:
                 return goalPlayer
 
         # ---------------------------------------------------
         # 2) Necesito vida urgentemente
         # ---------------------------------------------------
-        if perception[AgentConsts.HEALTH] <= 1 and goalLife is not None:
+        if perception[AgentConsts.HEALTH] <= 1 and perception[AgentConsts.AGENT_X] != -1:
             return goalLife
 
         # ---------------------------------------------------

@@ -197,6 +197,7 @@ class AStar:
             path.append(current)
             current = current.GetParent()
         # Lo devolvemos invertido: inicio -> meta
+        path.append(path[path.index - 1])
         return path[::-1]
 
     # Ejemplo de distancia Manhattan si la quisieras usar (opcional)
