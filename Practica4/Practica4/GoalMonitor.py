@@ -82,7 +82,7 @@ class GoalMonitor:
         # ---------------------------------------------------
         # 2) Necesito vida urgentemente
         # ---------------------------------------------------
-        if perception[AgentConsts.HEALTH] <= 1 and perception[AgentConsts.AGENT_X] != -1:
+        if perception[AgentConsts.HEALTH] <= 1 and perception[AgentConsts.LIFE_X] != -1:
             return goalLife
 
         # ---------------------------------------------------

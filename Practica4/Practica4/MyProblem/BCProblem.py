@@ -37,7 +37,7 @@ class BCProblem(Problem):
         # print("Aqui falta ncosas por hacer :) ")
         # return np.sqrt((node.x - self.xSize)**2 + (node.y - self.ySize)**2)
         # BCProblem.py   :contentReference[oaicite:2]{index=2}&#8203;:contentReference[oaicite:3]{index=3}
-        xNode, yNode = BCProblem.WorldToMapCoord(node.x, node.y, 15)
+        xNode, yNode = BCProblem.WorldToMapCoordFloat(node.x, node.y, 15)
         dx = abs(xNode - self.goal.x)
         dy = abs(yNode - self.goal.y)
         return dx + dy      # Manhattan
@@ -66,8 +66,15 @@ class BCProblem(Problem):
         # Desplazamientos (Δx, Δy)  ──>  derecha, izquierda, arriba, abajo
         moves = [(1, 0), (-1, 0), (0, 1), (0, -1)]
 
+        xNode, yNode = self.WorldToMapCoordFloat(node.x, node.y, 15)
+        cxNode = int(xNode) + 0.5
+        cyNode = int(yNode) + 0.5
+        """if xNode != cxNode or cyNode != yNode:
+            node.x, node.y = self.MapToWorldCoord(cxNode, cyNode, 15)
+            self.CreateNode(successors, node, int(node.x), int(node.y))"""
+
         for dx, dy in moves:
-            nx, ny = node.x + dx, node.y + dy
+            nx, ny = int(node.x) + dx, int(node.y) + dy
 
             # 1) Permanecer dentro del tablero
             if 0 <= nx < self.xSize and 0 <= ny < self.ySize:

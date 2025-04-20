@@ -197,41 +197,7 @@ class AStar:
             path.append(current)
             current = current.GetParent()
         # Lo devolvemos invertido: inicio -> meta
-        path.append(path[path.index - 1])
-        return path[::-1]
-
-    # Ejemplo de distancia Manhattan si la quisieras usar (opcional)
-    def Manhattan(self, n1, n2):
-        return abs(n1.x - n2.x) + abs(n1.y - n2.y)
-
-
-    def _ConfigureNode(self, node, parent, newG):
-        # Configura el nodo con su padre y la G nueva
-        node.SetParent(parent)
-        node.SetG(newG)
-        # Actualiza la heurística con la del problema
-        node.SetH(self.problem.Heuristic(node))
-
-    def GetSucesorInOpen(self, sucesor):
-        """
-        Devuelve el objeto 'Node' que sea igual a 'sucesor' (mismas coords, etc.)
-        si ya está en 'self.open'. Caso contrario, devuelve None.
-        """
-        found = None
-        for node in self.open:
-            if node == sucesor:
-                found = node
-                break
-        return found
-
-    def ReconstructPath(self, goal):
-        # Reconstruimos la ruta desde 'goal' hacia atrás siguiendo los padres
-        path = []
-        current = goal
-        while current is not None:
-            path.append(current)
-            current = current.GetParent()
-        # Lo devolvemos invertido: inicio -> meta
+        #path.append(path[path.index - 1])
         return path[::-1]
 
     # Ejemplo de distancia Manhattan si la quisieras usar (opcional)
